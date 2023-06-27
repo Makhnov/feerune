@@ -35,12 +35,29 @@ let containerScale;
 let dataG = {};
 
 function init() {
-    //console.log('Hello World!');
+    console.log('Hello World!');
     resize();
     originalData();
     //console.log(dataG);
     //utilsInit();
-    //console.log(regions);
+    console.log('startloading');
+    // Appel de la fonction asynchrone après les autres fonctions
+    imgAsync().then(() => {
+        background.src = "./img/highRes.jpg";
+        console.log('High-resolution image loaded');
+        // Effectuez ici les opérations supplémentaires que vous souhaitez effectuer après le chargement de l'image haute résolution.
+    }).catch((error) => {
+        console.error('Failed to load high-resolution image:', error);
+    });
+}
+
+function imgAsync() {
+    return new Promise((resolve, reject) => {
+        let Newbackground = new Image();
+        Newbackground.src = "./img/highRes.jpg";
+        Newbackground.onload = () => resolve();
+        Newbackground.onerror = (error) => reject(error);
+    });
 }
 
 function infos(g) {
@@ -76,6 +93,7 @@ function infos(g) {
         }
     }
 }
+
 let newScrollLeft;
 let newScrollTop;
 
@@ -192,6 +210,8 @@ function zoom(event) {
     container.scrollTop = newScrollTop;
     carteScale = newScale;
 }
+
+/*
 ggs.forEach((g) => {//INFOS SUR (mouseover) & ZOOM CIBLE "click"
     g.addEventListener('click', function (event) {
         event.stopPropagation();
@@ -200,7 +220,7 @@ ggs.forEach((g) => {//INFOS SUR (mouseover) & ZOOM CIBLE "click"
         console.log(container.scrollLeft);
     });
 });
-
+*/
 
 //var matrix = new DOMMatrix(transform);
 
@@ -279,13 +299,9 @@ function debounce(func, delay) {//FONCTION DELAI
     };
 }
 
-document.addEventListener('DOMContentLoaded', function () {//CHARGEMENT DE LA CARTE HAUTE RESOLUTION
-    let Newbackground = new Image();
-    Newbackground.src = "./img/highRes.jpg";
-    Newbackground.onload = function () {
-        background.src = Newbackground.src;
-    };
-});
+
+
+
 
 carte.addEventListener('wheel', (event) => {//ZOOM
     event.preventDefault();
@@ -299,8 +315,6 @@ ggs.forEach((g) => {//INFOS SUR (mouseover) & ZOOM CIBLE "click"
     g.addEventListener('mouseover', () => {
         infos(g);
     });
-
-    /*
     g.addEventListener('click', function (event) {
         event.stopPropagation();
         console.log(g.id);
@@ -343,7 +357,6 @@ ggs.forEach((g) => {//INFOS SUR (mouseover) & ZOOM CIBLE "click"
         container.scrollTop = (newTop * container.offsetHeight);
         container.scrollLeft = (newLeft * container.offsetWidth);
     });
-    */
 });
 
 max.addEventListener('click', () => {//OUVERTURE DU MENU INFOS (Uniquement si la carte est en plein écran)
