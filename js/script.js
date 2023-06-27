@@ -27,8 +27,11 @@ const infosLienEng = document.querySelector('div.lien p.eng a');
 let redimensionnement = 4;
 let hauteurCarte = 10200 / redimensionnement;
 let largeurCarte = 6600 / redimensionnement;
+
+const scaleAmount = 0.5;
 let carteScale = 1;
 let containerScale;
+
 let dataG = {};
 
 function init() {
@@ -40,17 +43,6 @@ function init() {
     //console.log(regions);
 }
 
-function originalData() {
-    for (let g of ggs) {
-        let rect = g.getBoundingClientRect();
-        dataG[g.id] = {
-            left: rect.left,
-            top: rect.top,
-            width: rect.width,
-            height: rect.height
-        };
-    }
-}
 function infos(g) {
     infosRegions.innerHTML = '';
     const lienFr = g.getAttribute('data-nom');
@@ -84,10 +76,20 @@ function infos(g) {
         }
     }
 }
+let newScrollLeft;
+let newScrollTop;
+
+let width;
+let height;
+let newWidth;
+let newHeight;
+let longueur;
+let largeur;
+let newLongueur;
+let newLargeur;
 
 function zoom(event) {
-    const scaleAmount = 0.5;
-    let scaleDelta = 0;
+    let scaleDelta;
 
     if (event.deltaY < 0) {
         // Zoom in
@@ -103,12 +105,19 @@ function zoom(event) {
     // Get mouse position relative to the carte
     const rect = carte.getBoundingClientRect();
 
+    /*
     // Get container scale
     const containerScale = window.getComputedStyle(container).getPropertyValue('transform');
+    //console.log(containerScale);
     const containerScaleValue = parseFloat(containerScale.substring(containerScale.indexOf('(') + 1, containerScale.indexOf(')')));
+    // console.log(containerScaleValue);
 
+    //console.log('souris');
+    // console.log(event.clientX);
     const offsetX = (event.clientX - rect.left) / containerScaleValue;
     const offsetY = (event.clientY - rect.top) / containerScaleValue;
+    //console.log('carte');
+    //console.log(rect.left);
 
     // Update scaling
     carte.style.transform = `scale(${newScale})`;
@@ -116,17 +125,84 @@ function zoom(event) {
 
     // Compute new scroll position: position to keep the cursor over the same point in the SVG
     const dx = (offsetX - container.scrollLeft);
+    console.log('dx');
+    console.log(dx);
     const dy = (offsetY - container.scrollTop);
 
+    console.log('container.scrollLeft');
+    console.log(container.scrollLeft);
+
     const newScrollLeft = dx * (newScale - carteScale) + container.scrollLeft;
+    console.log('newScrollLeft');
+    console.log(newScrollLeft);
     const newScrollTop = dy * (newScale - carteScale) + container.scrollTop;
 
     // Scroll
     container.scrollLeft = newScrollLeft;
     container.scrollTop = newScrollTop;
+*/
+    // const offsetX = event.clientX - rect.left;
+    // const offsetY = event.clientY - rect.top;
+    // // console.log('offsetx : ' + offsetX);
+    // // console.log('offsetY : ' + offsetY);
+    // // console.log(carte.offsetWidth * carteScale * containerScale);
+    // // console.log('rect.left: ' + rect.top);
+    // // console.log('container.scrollLeft: ' + container.scrollTop);
 
+    // // Calculate percentages with respect to the SVG's actual size (which might be zoomed)
+    // const xPercent = offsetX / (carte.offsetWidth * carteScale * containerScale);
+    // const yPercent = offsetY / (carte.offsetHeight * carteScale * containerScale);
+
+    // Update scaling
+    carte.style.transform = `scale(${newScale})`;
+
+    // Compute new scroll position: position to keep the cursor over the same point in the SVG
+    // console.log('xPrcent: ' + xPercent);
+    // console.log('yPrcent: ' + yPercent);
+    // const newScrollLeft = xPercent * carte.offsetWidth * newScale - event.clientX + rect.left;
+    // const newScrollTop = yPercent * carte.offsetHeight * newScale - event.clientY + rect.top;
+
+    // Scroll
+    // console.log(event.clientX / container.offsetWidth);
+    // console.log(carte.offsetWidth * carteScale * containerScale);
+    // console.log(event.clientX);
+
+    width = largeurCarte * containerScale * carteScale;
+    height = hauteurCarte * containerScale * carteScale;
+    newWidth = largeurCarte * containerScale * newScale;
+    newHeight = hauteurCarte * containerScale * newScale;
+    longueur = event.clientX + Math.abs(rect.left);
+    largeur = event.clientY + Math.abs(rect.top);
+    newLongueur = (longueur / width) * newWidth;
+    newLargeur = (largeur / height) * newHeight;
+
+    newScrollLeft = (newLongueur - event.clientX) / containerScale;
+    newScrollTop = (newLargeur - event.clientY) / containerScale;
+
+
+    // newScrollLeft = event.clientX - (event.clientX / container.offsetWidth) * (carte.offsetWidth * carteScale * containerScale);
+    // newScrollTop = event.clientY - (event.clientY / container.offsetHeight) * (carte.offsetHeight * carteScale * containerScale);
+    // newScrollLeft = newScrollLeft / containerScale;
+    // newScrollTop = newScrollTop / containerScale;
+    // console.log("sl:" + (event.clientX / container.offsetWidth));
+
+    // console.log("sl:" + newScrollLeft);
+    // console.log('rect' + rect.left);
+    container.scrollLeft = newScrollLeft;
+    container.scrollTop = newScrollTop;
     carteScale = newScale;
 }
+ggs.forEach((g) => {//INFOS SUR (mouseover) & ZOOM CIBLE "click"
+    g.addEventListener('click', function (event) {
+        event.stopPropagation();
+        const rect = carte.getBoundingClientRect();
+        console.log(rect.left / containerScale);
+        console.log(container.scrollLeft);
+    });
+});
+
+
+//var matrix = new DOMMatrix(transform);
 
 function resize() { // Fonction qui permet de redimensionner un groupe de personnages en fonction de l'écran de l'utilisateur
     //console.log('resize');
@@ -178,16 +254,22 @@ function resize() { // Fonction qui permet de redimensionner un groupe de person
 
 }
 
-//LISTENERS
-document.addEventListener('DOMContentLoaded', function () {
-    let Newbackground = new Image();
-    Newbackground.src = "./img/highRes.jpg";
-    Newbackground.onload = function () {
-        background.src = Newbackground.src;
-    };
-});
+// DONNES
+function originalData() {
+    for (let g of ggs) {
+        let rect = g.getBoundingClientRect();
+        dataG[g.id] = {
+            left: rect.left,
+            top: rect.top,
+            width: rect.width,
+            height: rect.height
+        };
+    }
+}
 
-function debounce(func, delay) {//DELAI
+//LISTENERS
+
+function debounce(func, delay) {//FONCTION DELAI
     let timer;
     return function () {
         const context = this;
@@ -197,18 +279,28 @@ function debounce(func, delay) {//DELAI
     };
 }
 
-carte.addEventListener('wheel', (event) => {
+document.addEventListener('DOMContentLoaded', function () {//CHARGEMENT DE LA CARTE HAUTE RESOLUTION
+    let Newbackground = new Image();
+    Newbackground.src = "./img/highRes.jpg";
+    Newbackground.onload = function () {
+        background.src = Newbackground.src;
+    };
+});
+
+carte.addEventListener('wheel', (event) => {//ZOOM
     event.preventDefault();
     zoom(event);
 });
 
+//REDIMENSIONNEMENT DE LA CARTE ET DE LA ZONE DES INFOS
 window.addEventListener('resize', debounce(resize, 300));
 
-ggs.forEach((g) => {
+ggs.forEach((g) => {//INFOS SUR (mouseover) & ZOOM CIBLE "click"
     g.addEventListener('mouseover', () => {
         infos(g);
     });
 
+    /*
     g.addEventListener('click', function (event) {
         event.stopPropagation();
         console.log(g.id);
@@ -251,17 +343,17 @@ ggs.forEach((g) => {
         container.scrollTop = (newTop * container.offsetHeight);
         container.scrollLeft = (newLeft * container.offsetWidth);
     });
+    */
 });
 
-max.addEventListener('click', () => {
+max.addEventListener('click', () => {//OUVERTURE DU MENU INFOS (Uniquement si la carte est en plein écran)
     resize();
     main.classList.toggle('max');
 });
 
-valbalafre.addEventListener('click', () => {
+valbalafre.addEventListener('click', () => {//PARTIE PERSONNAGE (jdr)
     window.location.href = "http://localhost/jdr";
 });
-
 
 /* SYNTAXE */
 function dataToTxt(str) {
@@ -288,7 +380,6 @@ function sansPrefixe(str) {
             return str.slice(prefix.length);
         }
     }
-
     return str;
 }
 

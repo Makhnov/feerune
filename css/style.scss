@@ -321,7 +321,7 @@ section.container {
 
             &:hover {
                 fill: red;
-                fill-opacity: .5;
+                fill-opacity: .4;
             }
         }
 
@@ -369,7 +369,7 @@ section.container {
 
         path.region.zone:not(.nom, .mer) {
             fill: green;
-            fill-opacity: .4;
+            fill-opacity: .6;
         }
 
         path.region.nom:not(.mer) {
